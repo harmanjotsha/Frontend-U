@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -12,12 +14,12 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/login', { email, password })
+      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password })
       localStorage.setItem('udaan_token', res.data.token)
       setMsg('Login successful! Redirecting to dashboard...')
       
       // Check if user has completed profile
-      const userRes = await axios.get('/api/auth/me', {
+      const userRes = await axios.get(`${API_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${res.data.token}` }
       })
       

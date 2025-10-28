@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'student' })
   const [msg, setMsg] = useState('')
@@ -13,8 +15,8 @@ export default function Register() {
     setMsg('') // Clear previous messages
     
     try {
-      // Use localhost:5000 for backend API
-      const res = await axios.post('http://localhost:5000/api/auth/register', form)
+      // Use production API URL
+      const res = await axios.post(`${API_URL}/api/auth/register`, form)
       localStorage.setItem('udaan_token', res.data.token)
       setMsg('Registration successful! Redirecting to profile setup...')
       setTimeout(() => {

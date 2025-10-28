@@ -9,8 +9,14 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:5000'
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      }
     }
+  },
+  define: {
+    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:5000')
   },
   build: {
     cssCodeSplit: true,

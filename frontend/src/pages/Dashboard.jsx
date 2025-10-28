@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import axios from 'axios'
-import AIChatbot from '../components/AIChatbot'
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import AIChatbot from '../components/AIChatbot';
+import axios from 'axios';
 
-export default function Dashboard(){
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+function Dashboard() {
   const [userProfile, setUserProfile] = useState(null)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [stats, setStats] = useState({
@@ -53,15 +56,15 @@ export default function Dashboard(){
         try {
           // Get user stats from different endpoints
           const [journalRes, emotionRes, communityRes] = await Promise.allSettled([
-            axios.get('http://localhost:5000/api/journal/my-entries', { 
+            axios.get(`${API_URL}/api/journal/my-entries`, { 
               headers: { Authorization: `Bearer ${token}` },
               timeout: 3000
             }),
-            axios.get('http://localhost:5000/api/emotion/my-analyses', { 
+            axios.get(`${API_URL}/api/emotion/my-analyses`, { 
               headers: { Authorization: `Bearer ${token}` },
               timeout: 3000
             }),
-            axios.get('http://localhost:5000/api/community', { 
+            axios.get(`${API_URL}/api/community`, { 
               headers: { Authorization: `Bearer ${token}` },
               timeout: 3000
             })
