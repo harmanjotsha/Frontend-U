@@ -1,0 +1,49 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "css.validate": false,
+    "less.validate": false, 
+    "scss.validate": false,
+    "postcss.validate": false,
+    "stylelint.enable": false,
+    "files.associations": {
+      "*.css": "postcss",
+      "*.pcss": "postcss"
+    },
+    "tailwindCSS.emmetCompletions": true,
+    "tailwindCSS.includeLanguages": {
+      "css": "css",
+      "postcss": "css",
+      "html": "html",
+      "javascript": "javascript",
+      "javascriptreact": "javascript",
+      "typescript": "javascript",
+      "typescriptreact": "javascript"
+    },
+    "emmet.includeLanguages": {
+      "postcss": "css",
+      "javascript": "javascriptreact"
+    },
+    "[css]": {
+      "editor.suggest.insertMode": "replace"
+    },
+    "[postcss]": {
+      "editor.suggest.insertMode": "replace"
+    },
+    "editor.quickSuggestions": {
+      "strings": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "bradlc.vscode-tailwindcss",
+      "csstools.postcss",
+      "esbenp.prettier-vscode",
+      "ms-vscode.vscode-language-pack-postcss"
+    ]
+  }
+}

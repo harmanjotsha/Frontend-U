@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "css.validate": false,
+    "scss.validate": false,
+    "less.validate": false,
+    "postcss.validate": false,
+    "files.associations": {
+      "*.css": "postcss"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "bradlc.vscode-tailwindcss"
+    ]
+  }
+}

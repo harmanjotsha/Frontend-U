@@ -1,0 +1,22 @@
+{
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "postcss.validate": false,
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",  
+  "less.lint.unknownAtRules": "ignore",
+  "stylelint.enable": false,
+  "files.associations": {
+    "*.css": "postcss",
+    "*.pcss": "postcss"
+  },
+  "tailwindCSS.emmetCompletions": true,
+  "tailwindCSS.includeLanguages": {
+    "css": "css",
+    "postcss": "css"
+  },
+  "[postcss]": {
+    "editor.suggest.insertMode": "replace"
+  }
+}

@@ -1,0 +1,8 @@
+nohup: ignoring input
+Attempting to connect to: MongoDB Atlas
+Server running on port 5000
+Server accessible at http://localhost:5000
+❌ MongoDB connection error: bad auth : Authentication failed.
+🔄 Atlas connection failed, trying local MongoDB...
+✅ Connected to local MongoDB successfully
+💡 Note: Using local database. To use Atlas, please whitelist your IP address.

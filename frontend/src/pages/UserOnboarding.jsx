@@ -1,0 +1,1002 @@
+import React, { useState } from 'react'
+import axios from 'axios'
+
+export default function UserOnboarding() {
+  const [step, setStep] = useState(1)
+  const [userData, setUserData] = useState({
+    name: '',
+    age: '',
+    challenges: {
+      physical: { text: '', emoji: '', voice: '', severity: 'mild' },
+      mental: { text: '', emoji: '', voice: '', severity: 'mild' },
+      academic: { text: '', emoji: '', voice: '', severity: 'mild' },
+      emotional: { text: '', emoji: '', voice: '', severity: 'mild' }
+    },
+    goals: '',
+    support_preference: 'text'
+  })
+  
+  const [isRecording, setIsRecording] = useState(false)
+  const [currentChallenge, setCurrentChallenge] = useState('')
+  const [speechRecognition, setSpeechRecognition] = useState(null)
+  const [detectedGoalCategories, setDetectedGoalCategories] = useState([])
+  const [followUpQuestions, setFollowUpQuestions] = useState([])
+  const [followUpAnswers, setFollowUpAnswers] = useState({})
+
+  const challenges = [
+    { 
+      key: 'physical', 
+      title: 'Physical Challenges', 
+      icon: '💪', 
+      description: 'Disability, mobility or health-related issues',
+      gradient: 'from-orange-400 to-red-500',
+      bgGradient: 'from-orange-50 to-red-50',
+      borderColor: 'border-orange-200 hover:border-orange-300'
+    },
+    { 
+      key: 'mental', 
+      title: 'Mental Health', 
+      icon: '🧠', 
+      description: 'Anxiety, stress, depression or other mental health issues',
+      gradient: 'from-pink-400 to-purple-500',
+      bgGradient: 'from-pink-50 to-purple-50',
+      borderColor: 'border-pink-200 hover:border-pink-300'
+    },
+    { 
+      key: 'academic', 
+      title: 'Academic Difficulties', 
+      icon: '📚', 
+      description: 'Problems with focus, memory or understanding in studies',
+      gradient: 'from-blue-400 to-indigo-500',
+      bgGradient: 'from-blue-50 to-indigo-50',
+      borderColor: 'border-blue-200 hover:border-blue-300'
+    },
+    { 
+      key: 'emotional', 
+      title: 'Emotional Struggles', 
+      icon: '❤️', 
+      description: 'Lack of confidence, loneliness or social challenges',
+      gradient: 'from-green-400 to-emerald-500',
+      bgGradient: 'from-green-50 to-emerald-50',
+      borderColor: 'border-green-200 hover:border-green-300'
+    }
+  ]
+
+  const updateChallenge = (challengeType, field, value) => {
+    setUserData(prev => ({
+      ...prev,
+      challenges: {
+        ...prev.challenges,
+        [challengeType]: {
+          ...prev.challenges[challengeType],
+          [field]: value
+        }
+      }
+    }))
+  }
+
+  const updateGoals = (value) => {
+    setUserData(prev => ({
+      ...prev,
+      goals: value
+    }))
+    
+    // Real-time analysis with debouncing for better performance
+    if (value.length > 10) { // Only analyze if meaningful input
+      const analysis = analyzeGoals(value)
+      setDetectedGoalCategories(analysis.categories)
+      setFollowUpQuestions(analysis.followUpQuestions)
+      // Reset answers when questions change
+      setFollowUpAnswers({})
+    } else {
+      // Clear analysis for short input
+      setDetectedGoalCategories([])
+      setFollowUpQuestions([])
+      setFollowUpAnswers({})
+    }
+  }
+
+  // Check if all required fields are completed
+  const areAllQuestionsAnswered = () => {
+    // Check if basic required fields are filled
+    if (!userData.goals.trim() || !userData.support_preference) {
+      return false
+    }
+    
+    // Check if all follow-up questions are answered
+    if (followUpQuestions.length > 0) {
+      for (let i = 0; i < followUpQuestions.length; i++) {
+        if (!followUpAnswers[i] || !followUpAnswers[i].trim()) {
+          return false
+        }
+      }
+    }
+    
+    return true
+  }
+
+  // Handle follow-up question answer changes
+  const handleFollowUpAnswer = (questionIndex, answer) => {
+    setFollowUpAnswers(prev => ({
+      ...prev,
+      [questionIndex]: answer
+    }))
+  }
+
+  const startVoiceRecording = (challengeType) => {
+    setCurrentChallenge(challengeType)
+    setIsRecording(true)
+    
+    // Check if browser supports speech recognition
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Speech recognition not supported in this browser. Please try Chrome or Edge.')
+      setIsRecording(false)
+      return
+    }
+    
+    // Create speech recognition instance
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+    
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.lang = 'en-US'
+    
+    let finalTranscript = ''
+    
+    recognition.onresult = (event) => {
+      let interimTranscript = ''
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' '
+          // Update the text field with final transcribed content
+          const currentText = userData.challenges[challengeType].text
+          const newText = currentText + (currentText ? ' ' : '') + transcript + ' '
+          updateChallenge(challengeType, 'text', newText)
+        } else {
+          interimTranscript += transcript
+        }
+      }
+    }
+    
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error)
+      setIsRecording(false)
+      setSpeechRecognition(null)
+      if (event.error === 'no-speech') {
+        alert('No speech detected. Please try again.')
+      } else if (event.error === 'not-allowed') {
+        alert('Microphone access denied. Please allow microphone permission.')
+      } else {
+        alert('Speech recognition error. Please try again.')
+      }
+    }
+    
+    recognition.onend = () => {
+      setIsRecording(false)
+      setSpeechRecognition(null)
+      // Mark voice recording as completed
+      updateChallenge(challengeType, 'voice', 'Voice message transcribed')
+    }
+    
+    // Start recording
+    try {
+      recognition.start()
+      setSpeechRecognition(recognition)
+      
+      // Auto-stop after 30 seconds
+      setTimeout(() => {
+        if (recognition && isRecording) {
+          recognition.stop()
+        }
+      }, 30000)
+    } catch (error) {
+      console.error('Failed to start speech recognition:', error)
+      setIsRecording(false)
+      setSpeechRecognition(null)
+      alert('Failed to start recording. Please try again.')
+    }
+  }
+  
+  const stopVoiceRecording = () => {
+    if (speechRecognition) {
+      speechRecognition.stop()
+    }
+    setIsRecording(false)
+    setSpeechRecognition(null)
+  }
+
+  // Enhanced Goal analysis function with better intelligence
+  const analyzeGoals = (goalsText) => {
+    const text = goalsText.toLowerCase()
+    const categories = []
+    const questions = []
+    
+    // Enhanced goal categories with more keywords and smarter detection
+    const goalPatterns = {
+      academic: {
+        keywords: ['study', 'education', 'learn', 'degree', 'course', 'school', 'university', 'exam', 'grade', 'subject', 'knowledge', 'skill', 'training', 'qualification', 'certification', 'research'],
+        supportTypes: ['text', 'visual', 'interactive'],
+        questions: [
+          'What specific subjects are you most interested in?',
+          'What learning style works best for you?',
+          'Do you prefer structured courses or self-paced learning?',
+          'Are you looking for formal education or skill-based training?'
+        ]
+      },
+      career: {
+        keywords: ['job', 'career', 'work', 'profession', 'business', 'company', 'entrepreneur', 'startup', 'income', 'salary', 'promotion', 'leadership', 'management', 'interview'],
+        supportTypes: ['text', 'interactive', 'visual'],
+        questions: [
+          'What industry or field interests you most?',
+          'Do you prefer working independently or in teams?',
+          'What skills do you want to develop for your career?',
+          'Are you looking to advance in your current field or switch careers?'
+        ]
+      },
+      creative: {
+        keywords: ['art', 'music', 'write', 'create', 'design', 'paint', 'draw', 'photography', 'video', 'creative', 'artistic', 'crafts', 'performance', 'theater', 'dance'],
+        supportTypes: ['visual', 'voice', 'interactive'],
+        questions: [
+          'What type of creative work excites you most?',
+          'Do you prefer visual arts, performing arts, or writing?',
+          'Would you like to learn new creative techniques?',
+          'Are you interested in sharing your creative work with others?'
+        ]
+      },
+      health: {
+        keywords: ['health', 'fitness', 'exercise', 'mental', 'wellness', 'meditation', 'therapy', 'healing', 'recovery', 'nutrition', 'lifestyle', 'wellbeing'],
+        supportTypes: ['voice', 'visual', 'text'],
+        questions: [
+          'Are you focusing on physical health, mental wellness, or both?',
+          'Do you prefer guided activities or self-directed wellness?',
+          'What wellness practices interest you most?',
+          'Would you like support with daily healthy habits?'
+        ]
+      },
+      social: {
+        keywords: ['friends', 'social', 'community', 'help', 'volunteer', 'relationship', 'connect', 'support', 'family', 'networking', 'communication', 'teamwork'],
+        supportTypes: ['interactive', 'text', 'voice'],
+        questions: [
+          'Do you want to build new friendships or strengthen existing ones?',
+          'Are you interested in joining communities or groups?',
+          'Would you like to help others or receive support?',
+          'Do you want to improve your communication skills?'
+        ]
+      },
+      personal: {
+        keywords: ['confidence', 'self', 'growth', 'develop', 'improve', 'overcome', 'independent', 'personal', 'life', 'goals', 'dreams', 'identity', 'purpose', 'motivation'],
+        supportTypes: ['voice', 'interactive', 'text'],
+        questions: [
+          'What personal qualities would you like to develop?',
+          'Are there specific challenges you want to overcome?',
+          'What would make you feel most confident?',
+          'How do you want to grow as a person?'
+        ]
+      },
+      technology: {
+        keywords: ['technology', 'computer', 'coding', 'programming', 'digital', 'app', 'website', 'software', 'tech', 'engineer', 'developer', 'AI', 'data', 'cybersecurity'],
+        supportTypes: ['visual', 'interactive', 'text'],
+        questions: [
+          'Are you interested in learning to code or use technology?',
+          'Do you want to create apps, websites, or other digital content?',
+          'What technology skills would be most useful for you?',
+          'Are you interested in specific tech fields like AI, web development, or data science?'
+        ]
+      }
+    }
+
+    // Analyze text for each category with weighted scoring
+    Object.entries(goalPatterns).forEach(([category, pattern]) => {
+      let matchScore = 0
+      let matchedKeywords = []
+      
+      pattern.keywords.forEach(keyword => {
+        if (text.includes(keyword)) {
+          matchScore += keyword.length // Longer keywords get higher weight
+          matchedKeywords.push(keyword)
+        }
+      })
+      
+      if (matchScore > 0) {
+        categories.push({
+          name: category,
+          strength: matchScore,
+          matchedKeywords: matchedKeywords,
+          supportTypes: pattern.supportTypes,
+          questions: pattern.questions
+        })
+      }
+    })
+
+    // Sort by strength and get top categories
+    categories.sort((a, b) => b.strength - a.strength)
+    const topCategories = categories.slice(0, 4) // Get top 4 categories
+    
+    // Generate intelligent questions from top categories
+    topCategories.forEach(category => {
+      // Add 2-3 questions from each detected category
+      questions.push(...category.questions.slice(0, 3))
+    })
+
+    return { categories: topCategories, followUpQuestions: questions.slice(0, 6) } // Limit to 6 questions
+  }
+
+  // Generate dynamic support options based on goals
+  const getDynamicSupportOptions = () => {
+    // Default options
+    const defaultOptions = [
+      { 
+        value: 'text', 
+        label: '📝 Text Messages', 
+        desc: 'Written suggestions and guidance',
+        gradient: 'from-blue-400 to-cyan-500',
+        bgGradient: 'from-blue-50 to-cyan-50'
+      },
+      { 
+        value: 'voice', 
+        label: '🎵 Voice and Music', 
+        desc: 'Audio clips and calming music',
+        gradient: 'from-purple-400 to-pink-500',
+        bgGradient: 'from-purple-50 to-pink-50'
+      },
+      { 
+        value: 'visual', 
+        label: '🎨 Images and Videos', 
+        desc: 'Inspirational images and videos',
+        gradient: 'from-green-400 to-emerald-500',
+        bgGradient: 'from-green-50 to-emerald-50'
+      },
+      { 
+        value: 'interactive', 
+        label: '🤖 Interactive Chat', 
+        desc: 'Chat with AI assistant',
+        gradient: 'from-orange-400 to-red-500',
+        bgGradient: 'from-orange-50 to-red-50'
+      }
+    ]
+
+    // If no goals detected, return default options
+    if (detectedGoalCategories.length === 0) {
+      return defaultOptions
+    }
+
+    // Enhanced options based on detected goals
+    const enhancedOptions = defaultOptions.map(option => {
+      let relevanceScore = 0
+      let customDesc = option.desc
+      
+      detectedGoalCategories.forEach(category => {
+        if (category.supportTypes.includes(option.value)) {
+          relevanceScore += category.strength
+        }
+      })
+
+      // Customize descriptions based on goals
+      if (relevanceScore > 0) {
+        switch (option.value) {
+          case 'text':
+            if (detectedGoalCategories.some(c => c.name === 'academic')) {
+              customDesc = 'Study guides, educational content, and written resources'
+            } else if (detectedGoalCategories.some(c => c.name === 'career')) {
+              customDesc = 'Career advice, professional development content'
+            } else if (detectedGoalCategories.some(c => c.name === 'personal')) {
+              customDesc = 'Personal development articles and motivational content'
+            }
+            break
+          case 'visual':
+            if (detectedGoalCategories.some(c => c.name === 'creative')) {
+              customDesc = 'Creative tutorials, art inspiration, and visual guides'
+            } else if (detectedGoalCategories.some(c => c.name === 'technology')) {
+              customDesc = 'Video tutorials, coding examples, and tech demonstrations'
+            } else if (detectedGoalCategories.some(c => c.name === 'health')) {
+              customDesc = 'Exercise videos, wellness visuals, and health infographics'
+            }
+            break
+          case 'voice':
+            if (detectedGoalCategories.some(c => c.name === 'health')) {
+              customDesc = 'Meditation audio, calming music, and wellness guidance'
+            } else if (detectedGoalCategories.some(c => c.name === 'creative')) {
+              customDesc = 'Music creation, audio inspiration, and voice coaching'
+            } else if (detectedGoalCategories.some(c => c.name === 'personal')) {
+              customDesc = 'Motivational audio, confidence building, and mindfulness'
+            }
+            break
+          case 'interactive':
+            if (detectedGoalCategories.some(c => c.name === 'social')) {
+              customDesc = 'Social skill building, communication practice, and community chat'
+            } else if (detectedGoalCategories.some(c => c.name === 'academic')) {
+              customDesc = 'Interactive learning, quizzes, and educational games'
+            } else if (detectedGoalCategories.some(c => c.name === 'career')) {
+              customDesc = 'Career coaching, interview practice, and skill assessment'
+            }
+            break
+        }
+      }
+
+      return { ...option, desc: customDesc, relevanceScore }
+    })
+
+    // Sort by relevance score (recommended options first)
+    return enhancedOptions.sort((a, b) => b.relevanceScore - a.relevanceScore)
+  }
+
+  const handleSubmit = async () => {
+    // Check if all questions are answered before proceeding
+    if (!areAllQuestionsAnswered()) {
+      alert('Please complete all questions before proceeding.')
+      return
+    }
+
+    try {
+      // Include follow-up answers in the userData
+      const completeUserData = {
+        ...userData,
+        followUpAnswers: followUpAnswers,
+        detectedGoalCategories: detectedGoalCategories
+      }
+      
+      // For now, save to localStorage since we don't have authentication
+      localStorage.setItem('udaan_user_profile', JSON.stringify(completeUserData))
+      
+      // Show success message
+      alert('Profile saved successfully! Redirecting to dashboard...')
+      
+      // Navigate to dashboard
+      window.location.href = '/app/dashboard'
+    } catch (err) {
+      console.error('Error submitting profile:', err)
+      alert('There was an error saving your profile. Please try again.')
+    }
+  }
+
+  const getCurrentStepContent = () => {
+    if (step === 1) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Enhanced Animated Background Elements */}
+        <div className="absolute inset-0">
+          {/* Large floating orbs */}
+          <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-indigo-300/30 to-purple-400/30 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-48 h-48 bg-gradient-to-br from-pink-300/30 to-rose-400/30 rounded-full blur-2xl animate-bounce"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-br from-cyan-300/20 to-blue-400/20 rounded-full blur-xl animate-pulse"></div>
+          
+          {/* Medium floating elements */}
+          <div className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-yellow-300/20 to-orange-400/20 rounded-full blur-2xl animate-bounce" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-1/4 right-1/4 w-20 h-20 bg-gradient-to-br from-green-300/20 to-emerald-400/20 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          
+          {/* Small decorative elements */}
+          <div className="absolute top-16 left-16 w-16 h-16 border-2 border-indigo-300/40 rounded-2xl rotate-45 opacity-60 animate-spin" style={{animationDuration: '10s'}}></div>
+          <div className="absolute bottom-16 right-16 w-12 h-12 border-2 border-purple-300/40 rounded-full opacity-50 animate-ping" style={{animationDelay: '3s'}}></div>
+          <div className="absolute top-32 right-32 w-8 h-8 bg-gradient-to-br from-pink-400/60 to-rose-500/60 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute bottom-32 left-32 w-6 h-6 bg-gradient-to-br from-blue-400/60 to-cyan-500/60 rounded-full animate-pulse" style={{animationDelay: '2.5s'}}></div>
+          
+          {/* Floating particles */}
+          <div className="absolute top-40 left-60 w-3 h-3 bg-indigo-400/40 rounded-full animate-bounce" style={{animationDelay: '0.5s', animationDuration: '3s'}}></div>
+          <div className="absolute top-60 right-40 w-2 h-2 bg-purple-400/40 rounded-full animate-pulse" style={{animationDelay: '1.8s', animationDuration: '4s'}}></div>
+          <div className="absolute bottom-40 left-40 w-4 h-4 bg-pink-400/40 rounded-full animate-bounce" style={{animationDelay: '2.2s', animationDuration: '2.5s'}}></div>
+          
+          {/* Geometric patterns */}
+          <div className="absolute top-24 right-60 w-10 h-10 border border-cyan-300/30 rounded-xl rotate-12 opacity-40 animate-spin" style={{animationDuration: '15s'}}></div>
+          <div className="absolute bottom-24 left-60 w-14 h-14 border-2 border-green-300/30 rounded-2xl rotate-45 opacity-50 animate-pulse"></div>
+        </div>
+        
+        <div className="relative flex items-center justify-center min-h-screen p-4">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-10 max-w-lg w-full border border-indigo-100/50 transform hover:scale-105 transition-all duration-300">
+            <div className="text-center mb-10">
+              <div className="relative mb-6">
+                <div className="text-8xl mb-4 animate-bounce">👋</div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping"></div>
+              </div>
+              <h2 className="text-4xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                Welcome to Udaan!
+              </h2>
+              <p className="text-xl text-gray-600 leading-relaxed">Let's get to know you better and start your amazing journey</p>
+              <div className="w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="group">
+                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                  <span className="text-lg">👤</span>
+                  Your Name
+                </label>
+                <input
+                  type="text"
+                  value={userData.name}
+                  onChange={(e) => setUserData({...userData, name: e.target.value})}
+                  className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 bg-gradient-to-r from-gray-50 to-indigo-50/30 group-hover:border-indigo-300"
+                  placeholder="Enter your beautiful name ✨"
+                />
+              </div>
+              
+              <div className="group">
+                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                  <span className="text-lg">🎂</span>
+                  Your Age
+                </label>
+                <input
+                  type="number"
+                  value={userData.age}
+                  onChange={(e) => setUserData({...userData, age: e.target.value})}
+                  className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 bg-gradient-to-r from-gray-50 to-indigo-50/30 group-hover:border-indigo-300"
+                  placeholder="How many years young are you? 🌟"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-8">
+              <button
+                onClick={() => setStep(2)}
+                disabled={!userData.name || !userData.age}
+                className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl ${
+                  userData.name && userData.age
+                    ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  Continue Your Journey
+                  <span className="text-xl">→</span>
+                </span>
+              </button>
+            </div>
+            
+            {/* Progress indicator */}
+            <div className="mt-6 flex justify-center space-x-2">
+              <div className="w-8 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+              <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    }
+
+    if (step === 2) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 relative overflow-hidden">
+        {/* Enhanced Animated Background Elements */}
+        <div className="absolute inset-0">
+          {/* Large floating orbs */}
+          <div className="absolute top-10 right-10 w-40 h-40 bg-gradient-to-br from-purple-300/35 to-pink-400/35 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-10 left-10 w-32 h-32 bg-gradient-to-br from-blue-300/35 to-indigo-400/35 rounded-full blur-2xl animate-bounce"></div>
+          <div className="absolute top-1/3 left-1/3 w-24 h-24 bg-gradient-to-br from-green-300/25 to-emerald-400/25 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s'}}></div>
+          
+          {/* Medium decorative elements */}
+          <div className="absolute top-1/4 right-1/4 w-20 h-20 bg-gradient-to-br from-orange-300/25 to-red-400/25 rounded-full blur-xl animate-bounce" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-1/3 right-1/3 w-28 h-28 bg-gradient-to-br from-yellow-300/20 to-amber-400/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
+          
+          {/* Floating geometric shapes */}
+          <div className="absolute top-20 left-1/4 w-12 h-12 border-2 border-purple-300/50 rounded-3xl rotate-45 opacity-60 animate-spin" style={{animationDuration: '12s'}}></div>
+          <div className="absolute bottom-20 right-1/4 w-16 h-16 border border-pink-300/40 rounded-full opacity-50 animate-ping" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-40 right-20 w-8 h-8 bg-gradient-to-br from-cyan-400/50 to-blue-500/50 rounded-full animate-bounce" style={{animationDelay: '0.8s'}}></div>
+          
+          {/* Small floating particles */}
+          <div className="absolute top-32 left-20 w-4 h-4 bg-purple-400/40 rounded-full animate-pulse" style={{animationDelay: '1.2s', animationDuration: '3s'}}></div>
+          <div className="absolute top-1/2 right-40 w-3 h-3 bg-pink-400/40 rounded-full animate-bounce" style={{animationDelay: '2.5s', animationDuration: '4s'}}></div>
+          <div className="absolute bottom-40 left-60 w-5 h-5 bg-indigo-400/40 rounded-full animate-pulse" style={{animationDelay: '0.3s', animationDuration: '2.8s'}}></div>
+          <div className="absolute bottom-60 right-60 w-2 h-2 bg-emerald-400/40 rounded-full animate-bounce" style={{animationDelay: '1.8s', animationDuration: '3.5s'}}></div>
+          
+          {/* Additional geometric patterns */}
+          <div className="absolute top-60 left-40 w-10 h-10 border border-green-300/30 rounded-2xl rotate-12 opacity-40 animate-spin" style={{animationDuration: '18s'}}></div>
+          <div className="absolute bottom-32 right-80 w-6 h-6 border-2 border-orange-300/40 rounded-full opacity-50 animate-ping" style={{animationDelay: '2.8s'}}></div>
+        </div>
+        
+        <div className="relative p-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 lg:p-12 border border-purple-100/50">
+              {/* Header */}
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-2xl mb-6 shadow-lg">
+                  <span className="text-2xl">💬</span>
+                  <span className="font-bold">Share Your Story</span>
+                </div>
+                <h2 className="text-4xl lg:text-5xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 bg-clip-text text-transparent mb-6">
+                  Tell Us About Your Challenges
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                  We're here to help you. Feel free to share whatever challenges you face. Your story matters. ✨
+                </p>
+                <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto mt-6 rounded-full"></div>
+              </div>
+
+              {/* Challenge Cards Grid */}
+              <div className="grid lg:grid-cols-2 gap-8 mb-12">
+                {challenges.map((challenge, index) => (
+                  <div 
+                    key={challenge.key} 
+                    className={`group relative bg-gradient-to-br ${challenge.bgGradient} rounded-3xl p-8 border-2 ${challenge.borderColor} transition-all duration-500 hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    {/* Top gradient line */}
+                    <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${challenge.gradient} rounded-t-3xl`}></div>
+                    
+                    {/* Header */}
+                    <div className="flex items-center mb-6">
+                      <div className={`w-16 h-16 bg-gradient-to-br ${challenge.gradient} rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg`}>
+                        <span className="text-3xl">{challenge.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-black text-gray-800 mb-1">{challenge.title}</h3>
+                        <p className="text-sm text-gray-600 leading-relaxed">{challenge.description}</p>
+                      </div>
+                    </div>
+
+                    {/* Form Fields */}
+                    <div className="space-y-4">
+                      {/* Text Area */}
+                      <div>
+                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                          <span className="text-lg">📝</span>
+                          Tell us in detail
+                        </label>
+                        <textarea
+                          value={userData.challenges[challenge.key].text}
+                          onChange={(e) => updateChallenge(challenge.key, 'text', e.target.value)}
+                          className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none"
+                          rows={3}
+                          placeholder="Type here or use voice recording below... We're here to listen 💙"
+                        />
+                      </div>
+
+                      {/* Emoji and Severity Row */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                            <span className="text-lg">😊</span>
+                            With emoji
+                          </label>
+                          <input
+                            type="text"
+                            value={userData.challenges[challenge.key].emoji}
+                            onChange={(e) => updateChallenge(challenge.key, 'emoji', e.target.value)}
+                            className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 bg-white/80 backdrop-blur-sm text-center text-2xl"
+                            placeholder="😔 🤔 😰"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                            <span className="text-lg">📊</span>
+                            Severity
+                          </label>
+                          <select
+                            value={userData.challenges[challenge.key].severity}
+                            onChange={(e) => updateChallenge(challenge.key, 'severity', e.target.value)}
+                            className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 bg-white/80 backdrop-blur-sm font-semibold"
+                          >
+                            <option value="mild">😊 Mild</option>
+                            <option value="moderate">😐 Moderate</option>
+                            <option value="severe">😔 Severe</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Voice Recording Section */}
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                          <span className="text-lg">🎤</span>
+                          Voice Recording (Speech-to-Text)
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startVoiceRecording(challenge.key)}
+                            disabled={isRecording && currentChallenge === challenge.key}
+                            className={`flex-1 p-4 border-2 border-dashed rounded-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 ${
+                              userData.challenges[challenge.key].voice
+                                ? 'border-green-300 bg-green-50 text-green-700'
+                                : isRecording && currentChallenge === challenge.key
+                                ? 'border-red-300 bg-red-50 text-red-700 animate-pulse'
+                                : 'border-gray-300 bg-gray-50 text-gray-600 hover:border-purple-400 hover:bg-purple-50'
+                            }`}
+                          >
+                            {isRecording && currentChallenge === challenge.key ? (
+                              <span className="flex items-center justify-center gap-2 font-bold">
+                                <span className="w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
+                                🎤 Listening... Speak now
+                              </span>
+                            ) : userData.challenges[challenge.key].voice ? (
+                              <span className="flex items-center justify-center gap-2 font-bold">
+                                <span className="text-xl">✅</span>
+                                Voice transcribed! 🎉
+                              </span>
+                            ) : (
+                              <span className="flex items-center justify-center gap-2 font-semibold">
+                                <span className="text-xl">🎤</span>
+                                Start Voice Recording
+                              </span>
+                            )}
+                          </button>
+                          
+                          {isRecording && currentChallenge === challenge.key && (
+                            <button
+                              onClick={stopVoiceRecording}
+                              className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl transition-all duration-300 transform hover:scale-105"
+                            >
+                              ⏹️ Stop
+                            </button>
+                          )}
+                        </div>
+                        
+                        {isRecording && currentChallenge === challenge.key && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3">
+                            <p className="text-blue-700 text-sm font-medium flex items-center gap-2">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                              Speech will be automatically added to the text area above
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Continue Button */}
+              <div className="text-center">
+                <button
+                  onClick={() => setStep(3)}
+                  className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 text-white px-12 py-4 rounded-2xl text-xl font-bold transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl"
+                >
+                  <span className="flex items-center justify-center gap-3">
+                    Continue to Goals
+                    <span className="text-2xl">🚀</span>
+                  </span>
+                </button>
+              </div>
+
+              {/* Progress indicator */}
+              <div className="mt-8 flex justify-center space-x-2">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <div className="w-8 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    }
+
+    if (step === 3) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-100 relative overflow-hidden">
+        {/* Enhanced Animated Background Elements */}
+        <div className="absolute inset-0">
+          {/* Large floating orbs */}
+          <div className="absolute top-16 right-16 w-48 h-48 bg-gradient-to-br from-yellow-300/35 to-orange-400/35 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-16 left-16 w-36 h-36 bg-gradient-to-br from-green-300/35 to-emerald-400/35 rounded-full blur-2xl animate-bounce"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-gradient-to-br from-blue-300/25 to-indigo-400/25 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s'}}></div>
+          
+          {/* Medium decorative elements */}
+          <div className="absolute top-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-purple-300/30 to-pink-400/30 rounded-full blur-xl animate-bounce" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-cyan-300/25 to-teal-400/25 rounded-full blur-2xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/3 right-1/5 w-20 h-20 bg-gradient-to-br from-rose-300/30 to-red-400/30 rounded-full blur-xl animate-bounce" style={{animationDelay: '0.5s'}}></div>
+          
+          {/* Star-like patterns for goals theme */}
+          <div className="absolute top-24 left-1/4 w-8 h-8 bg-gradient-to-br from-yellow-400/60 to-amber-500/60 rounded-full animate-pulse" style={{animationDelay: '0.8s', animationDuration: '2s'}}></div>
+          <div className="absolute top-1/3 right-20 w-6 h-6 bg-gradient-to-br from-orange-400/60 to-red-500/60 rounded-full animate-bounce" style={{animationDelay: '2.2s', animationDuration: '3s'}}></div>
+          <div className="absolute bottom-40 left-1/3 w-10 h-10 bg-gradient-to-br from-green-400/60 to-emerald-500/60 rounded-full animate-pulse" style={{animationDelay: '1.3s', animationDuration: '2.5s'}}></div>
+          
+          {/* Floating geometric shapes */}
+          <div className="absolute top-32 right-32 w-14 h-14 border-2 border-indigo-300/50 rounded-3xl rotate-45 opacity-60 animate-spin" style={{animationDuration: '20s'}}></div>
+          <div className="absolute bottom-32 left-32 w-12 h-12 border border-purple-300/40 rounded-2xl rotate-12 opacity-50 animate-ping" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-40 left-60 w-10 h-10 border-2 border-yellow-300/50 rounded-full opacity-60 animate-bounce" style={{animationDelay: '2.8s'}}></div>
+          
+          {/* Dream-like floating particles */}
+          <div className="absolute top-20 left-20 w-4 h-4 bg-yellow-400/50 rounded-full animate-pulse" style={{animationDelay: '0.2s', animationDuration: '3.5s'}}></div>
+          <div className="absolute top-80 right-40 w-3 h-3 bg-orange-400/50 rounded-full animate-bounce" style={{animationDelay: '1.8s', animationDuration: '4s'}}></div>
+          <div className="absolute bottom-20 right-20 w-5 h-5 bg-emerald-400/50 rounded-full animate-pulse" style={{animationDelay: '2.5s', animationDuration: '2.8s'}}></div>
+          <div className="absolute bottom-80 left-40 w-2 h-2 bg-purple-400/50 rounded-full animate-bounce" style={{animationDelay: '0.7s', animationDuration: '3.2s'}}></div>
+          <div className="absolute top-60 right-80 w-6 h-6 bg-pink-400/50 rounded-full animate-pulse" style={{animationDelay: '1.4s', animationDuration: '4.5s'}}></div>
+          
+          {/* Additional decorative elements */}
+          <div className="absolute top-48 left-80 w-8 h-8 border border-cyan-300/40 rounded-xl rotate-45 opacity-40 animate-spin" style={{animationDuration: '25s'}}></div>
+          <div className="absolute bottom-48 right-20 w-12 h-12 border-2 border-green-300/40 rounded-2xl rotate-12 opacity-50 animate-pulse" style={{animationDelay: '3s'}}></div>
+        </div>
+        
+        <div className="relative flex items-center justify-center min-h-screen p-4">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-10 lg:p-12 max-w-4xl w-full border border-indigo-100/50 transform hover:scale-105 transition-all duration-300">
+            {/* Header */}
+            <div className="text-center mb-12">
+              <div className="relative mb-8">
+                <div className="text-8xl mb-4 animate-bounce">🎯</div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping"></div>
+                <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse"></div>
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
+                Your Dreams & Goals
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                What do you want to achieve? Let's make your dreams come true together! ✨🌟
+              </p>
+              <div className="w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mt-6 rounded-full"></div>
+            </div>
+            
+            <div className="space-y-8">
+              {/* Goals Text Area */}
+              <div className="group">
+                <label className="flex items-center gap-2 text-lg font-bold text-gray-700 mb-4">
+                  <span className="text-2xl">💭</span>
+                  Your goals and dreams
+                </label>
+                <div className="relative">
+                  <textarea
+                    value={userData.goals}
+                    onChange={(e) => updateGoals(e.target.value)}
+                    className="w-full p-6 border-2 border-gray-200 rounded-3xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 bg-gradient-to-r from-gray-50 to-indigo-50/30 group-hover:border-indigo-300 resize-none text-lg leading-relaxed"
+                    rows={5}
+                    placeholder="What do you want to become? What are your goals? How can we help you? Share your biggest dreams... 🚀✨"
+                  />
+                  <div className="absolute bottom-4 right-4 text-gray-400 text-sm">
+                    {userData.goals.length}/500
+                  </div>
+                </div>
+                
+                {/* Goal Analysis Display */}
+                {detectedGoalCategories.length > 0 && (
+                  <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl">🎯</span>
+                      <span className="font-bold text-blue-800">We detected your interests in:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {detectedGoalCategories.map((category, index) => (
+                        <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium capitalize">
+                          {category.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Support Preferences */}
+              <div>
+                <label className="flex items-center gap-2 text-lg font-bold text-gray-700 mb-6">
+                  <span className="text-2xl">🎨</span>
+                  What type of support would you prefer?
+                  {detectedGoalCategories.length > 0 && (
+                    <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                      Personalized for your goals!
+                    </span>
+                  )}
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {getDynamicSupportOptions().map((option) => (
+                    <label 
+                      key={option.value} 
+                      className={`group relative cursor-pointer transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 ${
+                        userData.support_preference === option.value ? 'scale-105' : ''
+                      }`}
+                    >
+                      {option.recommended && (
+                        <div className="absolute -top-2 -left-2 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+                          Recommended
+                        </div>
+                      )}
+                      <input
+                        type="radio"
+                        name="support_preference"
+                        value={option.value}
+                        checked={userData.support_preference === option.value}
+                        onChange={(e) => setUserData({...userData, support_preference: e.target.value})}
+                        className="sr-only"
+                      />
+                      <div className={`
+                        relative p-6 rounded-3xl border-2 transition-all duration-300 bg-gradient-to-br ${option.bgGradient}
+                        ${userData.support_preference === option.value 
+                          ? `border-current bg-gradient-to-r ${option.gradient} text-white shadow-xl` 
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                        }
+                      `}>
+                        {userData.support_preference === option.value && (
+                          <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+                            <span className="text-green-500 text-xl">✓</span>
+                          </div>
+                        )}
+                        <div className="flex items-center mb-3">
+                          <span className="text-2xl mr-3">{option.label.split(' ')[0]}</span>
+                          <div className="font-bold text-lg">{option.label.substring(2)}</div>
+                        </div>
+                        <div className={`text-sm ${userData.support_preference === option.value ? 'text-white/90' : 'text-gray-600'}`}>
+                          {option.desc}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Dynamic Follow-up Questions */}
+              {followUpQuestions.length > 0 && (
+                <div className="mt-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-3xl border border-indigo-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-2xl">🤔</span>
+                    <h3 className="text-lg font-bold text-indigo-800">Tell us more about your goals:</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {followUpQuestions.map((question, index) => (
+                      <div key={index} className="p-4 bg-white rounded-2xl border border-indigo-100">
+                        <p className="text-gray-700 font-medium">{question}</p>
+                        <textarea
+                          className="w-full mt-2 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 resize-none"
+                          rows={2}
+                          placeholder="Your answer..."
+                          value={followUpAnswers[index] || ''}
+                          onChange={(e) => handleFollowUpAnswer(index, e.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-center text-sm text-indigo-600">
+                    💡 These questions are personalized based on your goals!
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Submit Button */}
+            <div className="mt-12 text-center">
+              <button
+                onClick={areAllQuestionsAnswered() ? handleSubmit : undefined}
+                disabled={!areAllQuestionsAnswered()}
+                className={`
+                  px-12 py-5 rounded-3xl text-xl font-bold transition-all duration-300 transform shadow-2xl group
+                  ${areAllQuestionsAnswered() 
+                    ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white hover:scale-105 hover:-translate-y-2 hover:shadow-3xl cursor-pointer' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50 blur-sm'
+                  }
+                `}
+              >
+                <span className="flex items-center justify-center gap-3">
+                  <span className={`text-2xl transition-transform duration-300 ${areAllQuestionsAnswered() ? 'group-hover:rotate-12 group-hover:scale-125' : ''}`}>
+                    🚀
+                  </span>
+                  Start Your Amazing Journey
+                  <span className={`text-2xl ${areAllQuestionsAnswered() ? 'group-hover:animate-bounce' : ''}`}>
+                    ✨
+                  </span>
+                </span>
+              </button>
+              
+              <p className={`mt-4 text-lg transition-all duration-300 ${areAllQuestionsAnswered() ? 'text-gray-600' : 'text-orange-600'}`}>
+                {areAllQuestionsAnswered() 
+                  ? 'Get ready for an incredible learning experience! 🌟'
+                  : 'Please complete all questions to continue 📝'
+                }
+              </p>
+            </div>
+
+            {/* Progress indicator */}
+            <div className="mt-8 flex justify-center space-x-2">
+              <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+              <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+              <div className="w-8 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    }
+
+    // Handle other steps or return default content
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-800">Step {step}</h1>
+            <p className="text-gray-600">This step is under development</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Return the current step
+  return getCurrentStepContent()
+}

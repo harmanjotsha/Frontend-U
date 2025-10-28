@@ -1,0 +1,47 @@
+{
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "postcss.validate": false,
+  "stylelint.enable": false,
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "tailwindCSS.emmetCompletions": true,
+  "tailwindCSS.includeLanguages": {
+    "javascript": "javascript",
+    "javascriptreact": "javascript",
+    "html": "html",
+    "css": "css",
+    "postcss": "css"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+    ["classnames\\(([^)]*)\\)", "'([^']*)'"],
+    ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "css.customData": [".vscode/css_custom_data.json"],
+  "files.associations": {
+    "*.css": "postcss",
+    "*.pcss": "postcss",
+    "index.css": "postcss"
+  },
+  "editor.inlineSuggest.enabled": true,
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact",
+    "postcss": "css"
+  },
+  "[css]": {
+    "editor.suggest.insertMode": "replace"
+  },
+  "[postcss]": {
+    "editor.suggest.insertMode": "replace"
+  },
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "workbench.editorAssociations": {
+    "*.css": "default"
+  }
+}

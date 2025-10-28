@@ -1,0 +1,364 @@
+import React from 'react'
+import { Link } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import SuperpowerQuiz from '../components/SuperpowerQuiz'
+
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Modern Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br from-indigo-200 to-purple-300 rounded-full opacity-10 blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/3 -left-20 w-60 h-60 bg-gradient-to-br from-pink-200 to-rose-300 rounded-full opacity-10 blur-2xl animate-bounce"></div>
+          <div className="absolute bottom-1/4 right-1/3 w-40 h-40 bg-gradient-to-br from-blue-200 to-cyan-300 rounded-full opacity-10 blur-xl"></div>
+          
+          {/* Geometric patterns */}
+          <div className="absolute top-20 right-20 w-32 h-32 border border-indigo-200 rounded-2xl rotate-45 opacity-20"></div>
+          <div className="absolute bottom-40 left-10 w-24 h-24 border-2 border-purple-200 rounded-full opacity-30"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="text-center">
+            <div className="flex justify-center mb-12">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div className="relative bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 rounded-3xl p-8 shadow-2xl transform group-hover:scale-105 transition-all duration-500">
+                  <span className="text-7xl">✈️</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mb-8">
+              <h1 className="text-6xl md:text-8xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight tracking-tight">
+                Udaan
+              </h1>
+              <div className="text-2xl md:text-3xl font-bold text-gray-600 mb-2 tracking-wide">
+                The Hidden Stars
+              </div>
+              <div className="w-32 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full"></div>
+            </div>
+            
+            <p className="text-xl md:text-2xl text-gray-700 mb-12 max-w-4xl mx-auto leading-relaxed">
+              <span className="font-semibold text-gray-800">A revolutionary platform</span> where you can express your emotions, learn, and grow. 
+              <br className="hidden sm:block" />
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+                We're here to support you through every challenge.
+              </span>
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+              <Link 
+                to="/register" 
+                className="group relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white px-12 py-5 rounded-2xl text-xl font-bold transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 hover:scale-105"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <span className="relative flex items-center justify-center gap-3">
+                  Get Started Free
+                  <span className="text-2xl group-hover:rotate-12 group-hover:scale-125 transition-transform duration-500">🚀</span>
+                </span>
+              </Link>
+            </div>
+            
+            {/* Enhanced Stats Section */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <div className="group bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-indigo-100 hover:border-indigo-200 transform hover:-translate-y-2">
+                <div className="text-5xl font-black bg-gradient-to-br from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-4 group-hover:scale-110 transition-transform duration-300">1000+</div>
+                <div className="text-gray-700 font-semibold text-lg">Students Empowered</div>
+                <div className="w-full h-1 bg-gradient-to-r from-indigo-500 to-blue-500 mt-3 rounded-full"></div>
+              </div>
+              <div className="group bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-purple-100 hover:border-purple-200 transform hover:-translate-y-2">
+                <div className="text-5xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4 group-hover:scale-110 transition-transform duration-300">24/7</div>
+                <div className="text-gray-700 font-semibold text-lg">AI Assistance</div>
+                <div className="w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 mt-3 rounded-full"></div>
+              </div>
+              <div className="group bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-green-100 hover:border-green-200 transform hover:-translate-y-2">
+                <div className="text-5xl font-black bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent mb-4 group-hover:scale-110 transition-transform duration-300">100%</div>
+                <div className="text-gray-700 font-semibold text-lg">Safe Environment</div>
+                <div className="w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500 mt-3 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="py-32 bg-gradient-to-br from-gray-50 via-white to-indigo-50 relative">
+        {/* Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full opacity-20 blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-to-br from-purple-100 to-pink-200 rounded-full opacity-20 blur-3xl"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <div className="inline-block mb-6">
+              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-lg font-bold tracking-wider uppercase">Features</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight">
+              Built to Empower You
+            </h2>
+            <p className="text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              Every student is unique, and our AI understands your individual needs and journey
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-3 gap-10">
+            <div className="group relative bg-white rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="text-6xl mb-8 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">💭</div>
+                <h3 className="text-3xl font-bold mb-6 text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">Share Your Feelings</h3>
+                <p className="text-gray-600 leading-relaxed text-lg mb-8">
+                  Express yourself through text, emojis, or voice messages. Our advanced AI understands your emotions and provides personalized guidance.
+                </p>
+                <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-semibold group-hover:from-blue-700 group-hover:to-indigo-700 transition-all duration-300 shadow-lg">
+                  <span>Express Safely</span>
+                  <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="group relative bg-white rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="text-6xl mb-8 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">🤖</div>
+                <h3 className="text-3xl font-bold mb-6 text-gray-800 group-hover:text-purple-700 transition-colors duration-300">AI Assistant</h3>
+                <p className="text-gray-600 leading-relaxed text-lg mb-8">
+                  24/7 intelligent chatbot that helps with studies, answers questions, and provides emotional support whenever you need it.
+                </p>
+                <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-semibold group-hover:from-purple-700 group-hover:to-pink-700 transition-all duration-300 shadow-lg">
+                  <span>Always Available</span>
+                  <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="group relative bg-white rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="text-6xl mb-8 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">🌟</div>
+                <h3 className="text-3xl font-bold mb-6 text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">Community Support</h3>
+                <p className="text-gray-600 leading-relaxed text-lg mb-8">
+                  Share your victories, inspire others, and be part of a supportive community that celebrates every achievement.
+                </p>
+                <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-semibold group-hover:from-indigo-700 group-hover:to-purple-700 transition-all duration-300 shadow-lg">
+                  <span>Connect & Grow</span>
+                  <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Challenges We Address */}
+      <div className="py-20 bg-gradient-to-br from-gray-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+              We Understand Your Challenges
+            </h2>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+              Supporting you through every difficulty with compassion and understanding
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="group bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-l-4 border-pink-400">
+              <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">🧠</div>
+              <h4 className="font-bold text-lg mb-3 text-pink-700">Mental Health</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">Help with anxiety, stress, and depression through personalized support</p>
+            </div>
+            
+            <div className="group bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-l-4 border-blue-400">
+              <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">📚</div>
+              <h4 className="font-bold text-lg mb-3 text-blue-700">Academic Challenges</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">Improving focus and motivation in studies with AI-powered guidance</p>
+            </div>
+            
+            <div className="group bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-l-4 border-green-400">
+              <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">💪</div>
+              <h4 className="font-bold text-lg mb-3 text-green-700">Physical Challenges</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">Supporting students facing disabilities and physical difficulties with adaptive learning</p>
+            </div>
+            
+            <div className="group bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-l-4 border-red-400">
+              <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">❤️</div>
+              <h4 className="font-bold text-lg mb-3 text-red-700">Emotional Support</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">Building confidence and finding happiness through emotional intelligence tools</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* How It Works */}
+      <div className="py-20 bg-gradient-to-br from-white via-purple-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+              How It Works
+            </h2>
+            <p className="text-xl text-gray-700">Simple steps to start your journey with us</p>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-center justify-between space-y-8 md:space-y-0 md:space-x-8">
+            <div className="flex-1 text-center group">
+              <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                <span className="text-2xl font-bold text-white">1</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-blue-700">Sign Up</h3>
+              <p className="text-gray-600 leading-relaxed">Create your account and share your information to get personalized support</p>
+            </div>
+            
+            {/* Arrow */}
+            <div className="hidden md:block text-gray-400 text-2xl">→</div>
+            
+            <div className="flex-1 text-center group">
+              <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                <span className="text-2xl font-bold text-white">2</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-purple-700">Share Your Feelings</h3>
+              <p className="text-gray-600 leading-relaxed">Write about your day in your daily journal and express yourself freely</p>
+            </div>
+            
+            {/* Arrow */}
+            <div className="hidden md:block text-gray-400 text-2xl">→</div>
+            
+            <div className="flex-1 text-center group">
+              <div className="bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                <span className="text-2xl font-bold text-white">3</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-indigo-700">Get AI Support</h3>
+              <p className="text-gray-600 leading-relaxed">Receive personalized suggestions and instant emotional support from our AI</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="py-20 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-black bg-opacity-10"></div>
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-10 right-10 w-32 h-32 bg-white bg-opacity-10 rounded-full"></div>
+          <div className="absolute bottom-10 left-10 w-24 h-24 bg-white bg-opacity-5 rounded-full"></div>
+        </div>
+        
+        <div className="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
+            Start Your Journey Today
+          </h2>
+          <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Join thousands of students who are already transforming their lives with our platform
+          </p>
+          
+          {/* Interactive "Discover Your Superpower" Quiz */}
+          <SuperpowerQuiz />
+
+
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="flex justify-center space-x-4 mb-2">
+                      <div className="animate-bounce" style={{animationDelay: '0s'}}>
+                        <span className="text-3xl">💫</span>
+                      </div>
+                      <div className="animate-bounce" style={{animationDelay: '0.5s'}}>
+                        <span className="text-3xl">🌟</span>
+                      </div>
+                      <div className="animate-bounce" style={{animationDelay: '1s'}}>
+                        <span className="text-3xl">✨</span>
+                      </div>
+                    </div>
+                    <p className="text-white/80 text-sm font-medium">
+                      Your dreams are taking flight! 🎈
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Floating Dream Bubbles */}
+                <div className="absolute top-4 left-4 animate-pulse">
+                  <div className="bg-white/20 rounded-full px-4 py-2 text-xs text-white">
+                    "I want to code!" 💻
+                  </div>
+                </div>
+                <div className="absolute top-8 right-8 animate-pulse" style={{animationDelay: '1s'}}>
+                  <div className="bg-white/20 rounded-full px-4 py-2 text-xs text-white">
+                    "I'll be an artist!" 🎨
+                  </div>
+                </div>
+                <div className="absolute bottom-4 left-1/3 animate-pulse" style={{animationDelay: '2s'}}>
+                  <div className="bg-white/20 rounded-full px-4 py-2 text-xs text-white">
+                    "I'll change the world!" �
+                  </div>
+                </div>
+              </div>
+              
+              {/* Inspiration Message */}
+              <div className="mt-6 text-center">
+                <p className="text-white/90 text-lg font-medium">
+                  🌈 Every dream starts with believing in yourself 🌈
+                </p>
+                <p className="text-blue-200 text-sm mt-2">
+                  Join our community where dreams become reality
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Trust indicators */}
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-8 text-blue-100">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">✅</span>
+              <span>100% Free</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🔒</span>
+              <span>Safe & Secure</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">⭐</span>
+              <span>24/7 Support</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full p-4">
+                <span className="text-4xl">✈️</span>
+              </div>
+            </div>
+            <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Udaan - The Hidden Stars
+            </h3>
+            <p className="text-gray-300 mb-8 text-lg max-w-2xl mx-auto leading-relaxed">
+              Empowering every student to discover their potential and soar high. 
+              Our mission is to uncover the hidden star in every student.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-8">
+              <Link to="/login" className="text-gray-300 hover:text-white transition-colors font-medium">Login</Link>
+              <Link to="/register" className="text-gray-300 hover:text-white transition-colors font-medium">Sign Up</Link>
+              <Link to="/about" className="text-gray-300 hover:text-white transition-colors font-medium">About Us</Link>
+              <Link to="/contact" className="text-gray-300 hover:text-white transition-colors font-medium">Contact</Link>
+            </div>
+            
+            <div className="border-t border-gray-700 pt-8">
+              <p className="text-gray-400 text-sm">
+                © 2024 Udaan - The Hidden Stars. Made with ❤️ for students worldwide.
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
