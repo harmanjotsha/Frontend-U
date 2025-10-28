@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import AIChatbot from '../components/AIChatbot';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://backend-u.vercel.app/';
 
 function Dashboard() {
   const [userProfile, setUserProfile] = useState(null)
